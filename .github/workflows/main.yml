@@ -1,0 +1,23 @@
+name: docker.cicd
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: docker login
+      run: |
+        docker login -u "$OKE_REGISTRY_USER" -p "$OKE_REGISTRY_PASSWORD" $OKE_REGISTRY
+      env:
+        OKE_REGISTRY: jed.ocir.io
+        OKE_REGISTRY_USER: ${{ secrets.OKE_REGISTRY_USER }}
+        OKE_REGISTRY_PASSWORD: ${{ secrets.OKE_REGISTRY_PASSWORD }}
+    - name: docker build
+      run: |
+        docker build -t "$OKE_REGISTRY_IMAGE" .
+        docker tag "$OKE_REGISTRY_IMAGE" "$OKE_REGISTRY_NEW_IMAGE"
+        docker push "$OKE_REGISTRY_NEW_IMAGE"
+        docker run "jed.ocir.io/isvglobal/thunder" echo "Simple docker ci/cd scenario executed..."
+      env:
+        OKE_REGISTRY_IMAGE: thunder:latest
+        OKE_REGISTRY_NEW_IMAGE: jed.ocir.io/isvglobal/thunder:latest
